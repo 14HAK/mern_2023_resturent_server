@@ -50,7 +50,8 @@ async function run() {
 
     //get cart items
     app.get('/client/cart', async (req, res) => {
-      const result = await cartCollection.find({}).toArray();
+      const methodQuery = req.query;
+      const result = await cartCollection.find(methodQuery).toArray();
       res.send(result);
     });
 

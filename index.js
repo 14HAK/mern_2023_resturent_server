@@ -43,15 +43,15 @@ async function run() {
     //post a cart item
     app.post('/client/cart', async (req, res) => {
       const cartData = await req.body;
-
       const result = await cartCollection.insertOne(cartData);
       res.send(result);
     });
 
     //get cart items
     app.get('/client/cart', async (req, res) => {
-      const methodQuery = req.query;
-      const result = await cartCollection.find(methodQuery).toArray();
+      const queryString = req.query.user;
+      const findQuery = { user: queryString };
+      const result = await cartCollection.find(findQuery).toArray();
       res.send(result);
     });
 

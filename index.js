@@ -66,6 +66,12 @@ async function run() {
       res.send(result);
     });
 
+    //get all user data
+    app.get('/users', async (req, res) => {
+      const result = await userCollection.find({}).toArray();
+      res.send(result);
+    });
+
     //post user information
     app.post('/users', async (req, res) => {
       const userData = await req.body;
@@ -79,6 +85,35 @@ async function run() {
         res.send(result);
       }
       //
+    });
+
+    //patch user role for update user role admin or normal user
+    app.patch('/user_role/:options', async (req, res) => {
+      const userData = req?.params?.options;
+      const data = await JSON.parse(userData);
+
+      const filter = { _id: new ObjectId(data?.id) };
+
+      if (data?.role === 'user') {
+        const updateDoc = {
+          $set: {
+            role: `admin`,
+          },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      } else {
+        const updateDoc = {
+          $set: {
+            role: `user`,
+          },
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result);
+      }
+
+      // const query = { _id: new ObjectId(ids) };
+      // console.log(query);
     });
 
     //

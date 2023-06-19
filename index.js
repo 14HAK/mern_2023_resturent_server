@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASSWORD}@cluster0.kcr8r.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -52,6 +52,16 @@ async function run() {
       const queryString = req.query.user;
       const findQuery = { user: queryString };
       const result = await cartCollection.find(findQuery).toArray();
+      res.send(result);
+    });
+
+    //delete cart items
+    app.delete('/client/cart/:id', async (req, res) => {
+      const ids = req.params.id;
+      const query = { _id: new ObjectId(ids) };
+
+      const result = await cartCollection.deleteOne(query);
+
       res.send(result);
     });
 

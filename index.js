@@ -27,6 +27,7 @@ async function run() {
       .collection('everyItems');
     const reviewsCollection = client.db('clientReviw').collection('review');
     const cartCollection = client.db('clientCard').collection('cart');
+    const userCollection = client.db('userHub').collection('user');
 
     //get all restaurant manus product
     app.get('/manu_products', async (req, res) => {
@@ -38,6 +39,16 @@ async function run() {
     app.get('/reviews', async (req, res) => {
       const result = await reviewsCollection.find({}).toArray();
       res.send(result);
+    });
+
+    //post user information
+    app.post('/users', async (req, res) => {
+      const userData = await req.body;
+
+      const result = await userCollection.insertOne(userData);
+      res.send(result);
+
+      //
     });
 
     //post a cart item

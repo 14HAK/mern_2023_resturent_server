@@ -41,16 +41,6 @@ async function run() {
       res.send(result);
     });
 
-    //post user information
-    app.post('/users', async (req, res) => {
-      const userData = await req.body;
-
-      const result = await userCollection.insertOne(userData);
-      res.send(result);
-
-      //
-    });
-
     //post a cart item
     app.post('/client/cart', async (req, res) => {
       const cartData = await req.body;
@@ -74,6 +64,21 @@ async function run() {
       const result = await cartCollection.deleteOne(query);
 
       res.send(result);
+    });
+
+    //post user information
+    app.post('/users', async (req, res) => {
+      const userData = await req.body;
+      const query = { email: userData?.email };
+
+      const existUser = await userCollection.findOne(query);
+      if (existUser) {
+        res.send({ message: 'user already exist!' });
+      } else {
+        const result = await userCollection.insertOne(userData);
+        res.send(result);
+      }
+      //
     });
 
     //

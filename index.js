@@ -1,7 +1,16 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+const port = process.env.PORT || 3000;
+
 const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASSWORD}@cluster0.kcr8r.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -11,23 +20,50 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+client.connect();
 
-const app = express();
-const port = process.env.PORT || 3000;
+// jwt verifying
+const verifyToken = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  console.log(authorization);
 
-app.use(cors());
-app.use(express.json());
+  if (!authorization) {
+    return res.status(401).send({ massege: 'unauthorized access' });
+  }
+  //bearer token
+  const token = authorization.split(' ')[1];
+  jwt.verify(token, process.env.SECRET_TOKEN_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ massege: 'unauthorized access' });
+    }
+    console.log('decoded:', decoded);
+
+    req.decoded = decoded;
+    next();
+  });
+};
 
 async function run() {
   try {
-    client.connect();
-
     const productsCollection = client
       .db('manuProducts')
       .collection('everyItems');
     const reviewsCollection = client.db('clientReviw').collection('review');
     const cartCollection = client.db('clientCard').collection('cart');
     const userCollection = client.db('userHub').collection('user');
+
+    //jwt sign token
+    app.post('/jwt', (req, res) => {
+      const user = req?.body;
+      console.log(user);
+
+      const token = jwt.sign(user, process.env.SECRET_TOKEN_KEY, {
+        expiresIn: '5h',
+      });
+
+      console.log(token);
+      res.send({ token });
+    });
 
     //get all restaurant manus product
     app.get('/manu_products', async (req, res) => {
@@ -49,9 +85,17 @@ async function run() {
     });
 
     //get cart items
-    app.get('/client/cart', async (req, res) => {
-      const queryString = req.query.user;
-      const findQuery = { user: queryString };
+    app.get('/client/cart', verifyToken, async (req, res) => {
+      const queryEmail = req.query.user;
+      const decodedEmail = await req.decoded.user;
+      if (!queryEmail) {
+        res.send([]);
+      }
+      if (queryEmail !== decodedEmail) {
+        res.status(403).send({ error: true, message: 'forbidden access' });
+      }
+
+      const findQuery = { user: queryEmail };
       const result = await cartCollection.find(findQuery).toArray();
       res.send(result);
     });
@@ -118,7 +162,7 @@ async function run() {
 
     //
   } finally {
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);

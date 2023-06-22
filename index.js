@@ -87,6 +87,8 @@ async function run() {
     //get cart items
     app.get('/client/cart', verifyToken, async (req, res) => {
       const queryEmail = req.query.user;
+      console.log(queryEmail);
+
       const decodedEmail = await req.decoded.user;
       if (!queryEmail) {
         res.send([]);

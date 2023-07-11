@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 client.connect();
 
 //demo:
-app.get('/manage', (req, res) => {
+app.get('/', (req, res) => {
   res.send('manage the route!');
 });
 

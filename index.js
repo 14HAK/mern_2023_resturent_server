@@ -22,10 +22,15 @@ const client = new MongoClient(uri, {
 });
 client.connect();
 
+//demo:
+app.get('/manage', (req, res) => {
+  res.send('manage the route!');
+});
+
 // jwt verifying
 const verifyToken = (req, res, next) => {
   const authorization = req.headers.authorization;
-  console.log(authorization);
+  // console.log(authorization);
 
   if (!authorization) {
     return res.status(401).send({ massege: 'unauthorized access' });
@@ -36,7 +41,7 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).send({ massege: 'unauthorized access' });
     }
-    console.log('decoded:', decoded);
+    // console.log('decoded:', decoded);
 
     req.decoded = decoded;
     next();
@@ -55,13 +60,13 @@ async function run() {
     //jwt sign token
     app.post('/jwt', (req, res) => {
       const user = req?.body;
-      console.log(user);
+      // console.log(user);
 
       const token = jwt.sign(user, process.env.SECRET_TOKEN_KEY, {
         expiresIn: '5h',
       });
 
-      console.log(token);
+      // console.log(token);
       res.send({ token });
     });
 
@@ -87,7 +92,7 @@ async function run() {
     //get cart items
     app.get('/client/cart', verifyToken, async (req, res) => {
       const queryEmail = req.query.user;
-      console.log(queryEmail);
+      // console.log(queryEmail);
 
       const decodedEmail = await req.decoded.user;
       if (!queryEmail) {
@@ -130,6 +135,15 @@ async function run() {
         const result = await userCollection.insertOne(userData);
         res.send(result);
       }
+
+      // verify user that normal user or admin user:
+      app.get('/apollo', verifyToken, async (req, res) => {
+        const queryEmail = await req?.query?.user;
+        console.log(queryEmail);
+
+        res.send('makaw');
+      });
+
       //
     });
 
@@ -157,9 +171,6 @@ async function run() {
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result);
       }
-
-      // const query = { _id: new ObjectId(ids) };
-      // console.log(query);
     });
 
     //
